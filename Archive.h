@@ -1,15 +1,25 @@
 #ifndef ARCHIVE_H
 #define ARCHIVE_H
 
-#include <iostream>
+#include <string>
 #include <fstream>
+#include <queue>
+#include "FiledataExtractor.h"
 
 class Archive {
     public:
+        Archive(std::string);
         bool write();
         bool extract();
 
     private:
+        // Fields
+        std::string root;
+        std::ofstream fwriter;
+        std::queue<std::string> dir_queue;
+        FiledataExtractor extractor;
+
+
         // Archive Creation Helpers
         void processSubdir(std::string);
 
