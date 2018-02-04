@@ -7,7 +7,7 @@
 // Helper Methods
 bool FiledataExtractor::readACInfo() {
     struct stat file_stat;
-    if (stat((path_prefix+"/"+filename).c_str(),&file_stat) == -1)
+    if (stat((path_prefix+PATH_SEPERATOR+filename).c_str(),&file_stat) == -1)
         return false;
 
     int user_permission=0;
@@ -16,8 +16,9 @@ bool FiledataExtractor::readACInfo() {
     int special_permission=0;
 
     // Add UID & GID Information
-    ac_data = std::to_string(file_stat.st_uid) + ":" +
-            std::to_string(file_stat.st_gid) + ":";
+    ownership_data = std::to_string(file_stat.st_uid) + SEPERATOR +
+                    std::to_string(file_stat.st_gid);
+
     // Calculate owner permission value
     user_permission += (file_stat.st_mode & S_IRUSR) ? 4 : 0;
     user_permission += (file_stat.st_mode & S_IWUSR) ? 2 : 0;
@@ -38,17 +39,18 @@ bool FiledataExtractor::readACInfo() {
     special_permission += (file_stat.st_mode & S_ISGID) ? 2 : 0;
 
     // Construct octal string
-    ac_data += (char)('0' + special_permission);
-    ac_data += (char)('0' + user_permission);
-    ac_data += (char)('0' + group_permission);
-    ac_data += (char)('0' + other_permission);
+    perm_data = (special_permission * 1000) +
+                        (user_permission * 100) +
+                        (group_permission * 10) +
+                        other_permission;
+
 
     return true;
 }
 
 bool FiledataExtractor::readData() {
     std::ifstream reader;
-    reader.open(path_prefix+"/"+filename,std::ifstream::in);
+    reader.open(path_prefix+PATH_SEPERATOR+filename,std::ifstream::in);
 
     // Check if failbit is set
     if (reader.fail())
@@ -64,21 +66,27 @@ bool FiledataExtractor::readData() {
 }
 
 // Getter Methods
-std::string FiledataExtractor::getACInfo() {
-    return AC_START + ac_data + AC_END;
+std::string FiledataExtractor::getOwnershipInfo() {
+    return ownership_data;
+}
+
+int FiledataExtractor::getPermInfo() {
+  return perm_data;
 }
 
 std::string FiledataExtractor::getFilename() {
-    return FNAME_START + filename + FNAME_END;
+    return filename;
 }
 
 std::string FiledataExtractor::getFiledata() {
-    return FDATA_START + filedata + FDATA_END;
+  readData();
+  return filedata;
 }
 
 // Mutator Methods
 bool FiledataExtractor::loadFile(std::string prefix,std::string fname) {
     path_prefix = prefix;
     filename = fname;
-    return readACInfo() && readData();
+    filedata = "";
+    return readACInfo();
 }

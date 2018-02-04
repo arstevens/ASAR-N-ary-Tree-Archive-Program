@@ -25,12 +25,17 @@ bool Archive::processSubdir(std::string path) {
 
     // Process Files
     while ((dentry = readdir(dstream)) != NULL) {
-        if (strcmp(dentry->d_name,".") == 0 || strcmp(dentry->d_name,"..") == 0)
+        // Make sure the entry is Valid
+        if (!validEntry(dentry->d_name))
             continue;
 
         bool is_dir = false;
         extractor.loadFile(root,dentry->d_name);
-        fwriter << extractor.getFilename() << extractor.getACInfo();
+
+        // Start writing entry header
+        fwriter << HEADER_START << extractor.getFilename() << SEPERATOR;
+        fwriter << extractor.getOwnershipInfo() << SEPERATOR;
+        fwriter << extractor.getPermInfo() << SEPERATOR;
 
         // Handle if file type is in directory or need Inode seek
         #ifndef _DIRENT_HAVE_D_TYPE
@@ -39,7 +44,7 @@ bool Archive::processSubdir(std::string path) {
 
         #else
         struct stat f_stat_info;
-        stat((path + "/" + dentry->d_name).c_str(),&f_stat_info);
+        stat((path + PATH_SEPERATOR + dentry->d_name).c_str(),&f_stat_info);
 
         if (S_ISDIR(f_stat_info.st_mode) != 0)
             is_dir = true;
@@ -48,12 +53,12 @@ bool Archive::processSubdir(std::string path) {
 
         // Handle difference between Directory & File
         if (is_dir) {
-            dir_queue.push(path + "/" + dentry->d_name);
-            fwriter << DIR_END;
+            fwriter << DIR_END << HEADER_END;
+            dir_queue.push(path + PATH_SEPERATOR + dentry->d_name);
         }
         else {
+            fwriter << FILE_END << HEADER_END;
             fwriter << extractor.getFiledata();
-            fwriter << FILE_END;
         }
     }
 
@@ -61,6 +66,10 @@ bool Archive::processSubdir(std::string path) {
 
     return true;
 
+}
+
+bool Archive::validEntry(std::string dir) {
+  return (dir != CURRENT_DIR && dir != PREV_DIR);
 }
 
 // Archive Extraction Helpers

@@ -23,6 +23,7 @@ class Archive {
 
         // Archive Creation Helpers
         bool processSubdir(std::string);
+        bool validEntry(std::string);
 
         // Archive Extraction Helpers
         void processRegexStream(/*RStream dtype*/);
