@@ -5,11 +5,11 @@
 
 class FiledataExtractor {
     public:
-        FiledataExtractor();
         std::string getACInfo();
         std::string getFilename();
         std::string getFiledata();
 
+        bool loadFile(std::string,std::string);
         bool loadFile(std::string);
 
     private:
@@ -17,6 +17,7 @@ class FiledataExtractor {
         bool readData();
 
         std::string ac_data;
+        std::string path_prefix;
         std::string filename;
         std::string filedata;
 };

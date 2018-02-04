@@ -8,6 +8,7 @@
 
 class Archive {
     public:
+        Archive(std::string,std::string);
         Archive(std::string);
         bool write();
         bool extract();
@@ -21,7 +22,7 @@ class Archive {
 
 
         // Archive Creation Helpers
-        void processSubdir(std::string);
+        bool processSubdir(std::string);
 
         // Archive Extraction Helpers
         void processRegexStream(/*RStream dtype*/);

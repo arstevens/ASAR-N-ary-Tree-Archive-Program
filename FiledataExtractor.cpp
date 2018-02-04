@@ -1,24 +1,22 @@
 #include <sys/stat.h>
 #include <fstream>
+#include <iostream>
 #include "FiledataExtractor.h"
 #include "Tags.h"
 
 // Helper Methods
 bool FiledataExtractor::readACInfo() {
     struct stat file_stat;
-   if (stat(filename.c_str(),&file_stat) == -1)
-       return false;
+    if (stat((path_prefix+"/"+filename).c_str(),&file_stat) == -1)
+        return false;
 
     int user_permission=0;
     int group_permission=0;
     int other_permission=0;
     int special_permission=0;
 
-    // Write Access Control Start Tag
-    ac_data = Tags::AC_START;
-
     // Add UID & GID Information
-    ac_data += std::to_string(file_stat.st_uid) + ":" +
+    ac_data = std::to_string(file_stat.st_uid) + ":" +
             std::to_string(file_stat.st_gid) + ":";
     // Calculate owner permission value
     user_permission += (file_stat.st_mode & S_IRUSR) ? 4 : 0;
@@ -45,18 +43,12 @@ bool FiledataExtractor::readACInfo() {
     ac_data += (char)('0' + group_permission);
     ac_data += (char)('0' + other_permission);
 
-    // Write Access Control End Tag
-    ac_data += Tags::AC_END;
-
     return true;
 }
 
 bool FiledataExtractor::readData() {
     std::ifstream reader;
-    reader.open(filename,std::ifstream::in);
-
-    // Write File data start Tag
-    filedata = Tags::FDATA_START;
+    reader.open(path_prefix+"/"+filename,std::ifstream::in);
 
     // Check if failbit is set
     if (reader.fail())
@@ -68,28 +60,25 @@ bool FiledataExtractor::readData() {
         filedata += current_char;
         current_char = reader.get();
     }
-
-    // Write File data end Tag
-    filedata += Tags::FDATA_END;
-
     return true;
 }
 
 // Getter Methods
 std::string FiledataExtractor::getACInfo() {
-    return ac_data;
+    return AC_START + ac_data + AC_END;
 }
 
 std::string FiledataExtractor::getFilename() {
-    return filename;
+    return FNAME_START + filename + FNAME_END;
 }
 
 std::string FiledataExtractor::getFiledata() {
-    return filedata;
+    return FDATA_START + filedata + FDATA_END;
 }
 
 // Mutator Methods
-bool FiledataExtractor::loadFile(std::string path) {
-    filename = Tags::FNAME_START + path + Tags::FNAME_END;
-    return this->readACInfo() && this->readData();
+bool FiledataExtractor::loadFile(std::string prefix,std::string fname) {
+    path_prefix = prefix;
+    filename = fname;
+    return readACInfo() && readData();
 }
