@@ -10,7 +10,7 @@
 
 // Constructors
 ArchiveEncoder::ArchiveEncoder(std::string root_path,std::string archive_file) :
-																						Archive(root_path) {
+															Archive(root_path) {
     fwriter.open(archive_file,std::ofstream::out);
 }
 

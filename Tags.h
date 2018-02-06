@@ -9,3 +9,5 @@ static std::string PATH_SEPERATOR = "/";
 static std::string CURRENT_DIR = ".";
 static std::string PREV_DIR = "..";
 static std::string EOE = "<EOE>";
+static std::string END_QUEUE = "<-EQ->"
+static int BLK_SIZE = 64000; // 64k 
