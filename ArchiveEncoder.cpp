@@ -3,16 +3,17 @@
 #include <sys/stat.h>
 #include <iostream>
 #include <cstring>
+#include <thread>
+#include <functional>
 #include "Tags.h"
 #include "ArchiveEncoder.h"
 #include "Archive.h"
 #include "FiledataExtractor.h"
+#include "IOFunctions.h"
 
 // Constructors
 ArchiveEncoder::ArchiveEncoder(std::string root_path,std::string archive_file) :
-															Archive(root_path) {
-    fwriter.open(archive_file,std::ofstream::out);
-}
+															Archive(root_path),archive_fn(archive_file) { }
 
 
 // Archive Creation Helpers
@@ -31,12 +32,6 @@ bool ArchiveEncoder::processSubdir(std::string path) {
             continue;
 
         bool is_dir = false;
-        extractor.loadFile(path,dentry->d_name);
-
-        // Start writing entry header
-        fwriter << HEADER_START << extractor.getFilename() << SEPERATOR;
-        fwriter << extractor.getOwnershipInfo() << SEPERATOR;
-        fwriter << extractor.getPermInfo() << SEPERATOR;
 
         // Handle if file type is in directory or need Inode seek
         #ifndef _DIRENT_HAVE_D_TYPE
@@ -53,18 +48,18 @@ bool ArchiveEncoder::processSubdir(std::string path) {
         #endif
 
         // Handle difference between Directory & File
+				std::string fname = dentry->d_name;
+
         if (is_dir) {
-            fwriter << DIR_END << HEADER_END;
+						file_queue.push(DIR_END + fname);
             dir_queue.push(path + PATH_SEPERATOR + dentry->d_name);
         }
         else {
-            fwriter << FILE_END << HEADER_END;
-            fwriter << extractor.getFiledata();
+						file_queue.push(FILE_END + fname);
         }
     }
 
-    fwriter << EOE;
-
+		file_queue.push(EOE);
     return true;
 
 }
@@ -77,6 +72,7 @@ bool ArchiveEncoder::validEntry(std::string dir) {
 // Archive Creation Method
 bool ArchiveEncoder::write() {
     // Initial Load
+		std::thread read_thread(readHandler,std::ref(file_queue),archive_fn);
     processSubdir(root);
 
     // Subdirectory Processing
@@ -86,6 +82,10 @@ bool ArchiveEncoder::write() {
         dir_queue.pop();
         processSubdir(dir);
     }
+
+		// Tell the read thread to finish processing
+		file_queue.push(END_QUEUE);
+		read_thread.join();
 
     return true;
 }

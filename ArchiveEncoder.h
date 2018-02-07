@@ -12,6 +12,8 @@ class ArchiveEncoder : public Archive {
 
   private:
     FiledataExtractor extractor;
+    std::string archive_fn;
+    std::queue<std::string> file_queue;
 
     bool processSubdir(std::string);
     bool validEntry(std::string);

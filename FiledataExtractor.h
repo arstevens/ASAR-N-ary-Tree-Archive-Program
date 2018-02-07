@@ -8,7 +8,7 @@ class FiledataExtractor {
         std::string getFilename();
         std::string getFiledata();
         std::string getOwnershipInfo();
-        int getPermInfo();
+        std::string getPermInfo();
 
         bool loadFile(std::string,std::string);
 
@@ -17,7 +17,7 @@ class FiledataExtractor {
         bool readData();
 
         std::string ownership_data;
-        int perm_data;
+        std::string perm_data;
         std::string path_prefix;
         std::string filename;
         std::string filedata;

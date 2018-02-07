@@ -39,11 +39,8 @@ bool FiledataExtractor::readACInfo() {
     special_permission += (file_stat.st_mode & S_ISGID) ? 2 : 0;
 
     // Construct octal string
-    perm_data = (special_permission * 1000) +
-                        (user_permission * 100) +
-                        (group_permission * 10) +
-                        other_permission;
-
+    perm_data = special_permission + user_permission +
+                group_permission + other_permission;
 
     return true;
 }
@@ -62,6 +59,8 @@ bool FiledataExtractor::readData() {
         filedata += current_char;
         current_char = reader.get();
     }
+
+    reader.close();
     return true;
 }
 
@@ -70,7 +69,7 @@ std::string FiledataExtractor::getOwnershipInfo() {
     return ownership_data;
 }
 
-int FiledataExtractor::getPermInfo() {
+std::string FiledataExtractor::getPermInfo() {
   return perm_data;
 }
 
