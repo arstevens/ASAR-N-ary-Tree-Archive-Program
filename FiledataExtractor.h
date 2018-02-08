@@ -10,7 +10,7 @@ class FiledataExtractor {
         std::string getOwnershipInfo();
         std::string getPermInfo();
 
-        bool loadFile(std::string,std::string);
+        bool loadFile(std::string);
 
     private:
         bool readACInfo();

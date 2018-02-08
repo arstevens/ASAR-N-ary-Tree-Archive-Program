@@ -39,8 +39,10 @@ bool FiledataExtractor::readACInfo() {
     special_permission += (file_stat.st_mode & S_ISGID) ? 2 : 0;
 
     // Construct octal string
-    perm_data = special_permission + user_permission +
-                group_permission + other_permission;
+    perm_data = (char)('0' + special_permission);
+    perm_data += (char)('0' + user_permission);
+    perm_data += (char)('0' + group_permission);
+    perm_data += (char)('0' + other_permission);
 
     return true;
 }
@@ -83,9 +85,10 @@ std::string FiledataExtractor::getFiledata() {
 }
 
 // Mutator Methods
-bool FiledataExtractor::loadFile(std::string prefix,std::string fname) {
-    path_prefix = prefix;
-    filename = fname;
+bool FiledataExtractor::loadFile(std::string path) {
+  std::string::size_type seperator = path.find_last_of('/');
+    path_prefix = path.substr(0,seperator);
+    filename = path.substr(seperator+1);
     filedata = "";
     return readACInfo();
 }

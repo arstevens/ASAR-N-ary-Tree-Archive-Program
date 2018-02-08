@@ -33,29 +33,22 @@ bool ArchiveEncoder::processSubdir(std::string path) {
 
         bool is_dir = false;
 
-        // Handle if file type is in directory or need Inode seek
-        #ifndef _DIRENT_HAVE_D_TYPE
-        if (dentry->d_type == DT_DIR)
-            is_dir = true;
-
-        #else
+        // Get stat type to probe for entry type
         struct stat f_stat_info;
-        stat((path + PATH_SEPERATOR + dentry->d_name).c_str(),&f_stat_info);
+        lstat((path + PATH_SEPERATOR + dentry->d_name).c_str(),&f_stat_info);
 
-        if (S_ISDIR(f_stat_info.st_mode) != 0)
-            is_dir = true;
-
-        #endif
-
-        // Handle difference between Directory & File
+        // Handle difference between Directory, File & Symlink
 				std::string fname = dentry->d_name;
 
-        if (is_dir) {
-						file_queue.push(DIR_END + fname);
+        if (S_ISDIR(f_stat_info.st_mode) != 0) {
+						file_queue.push(DIR_END + path + PATH_SEPERATOR + fname);
             dir_queue.push(path + PATH_SEPERATOR + dentry->d_name);
         }
+				else if (S_ISLNK(f_stat_info.st_mode) != 0) {
+					file_queue.push(SYM_END + path + PATH_SEPERATOR + fname);
+				}
         else {
-						file_queue.push(FILE_END + fname);
+						file_queue.push(FILE_END + path + PATH_SEPERATOR + fname);
         }
     }
 
@@ -68,17 +61,16 @@ bool ArchiveEncoder::validEntry(std::string dir) {
   return (dir != CURRENT_DIR && dir != PREV_DIR);
 }
 
-
 // Archive Creation Method
+
 bool ArchiveEncoder::write() {
     // Initial Load
-		std::thread read_thread(readHandler,std::ref(file_queue),archive_fn);
+		std::thread read_thread(readHandler,std::ref(file_queue),archive_fn,root);
     processSubdir(root);
 
     // Subdirectory Processing
     while (!dir_queue.empty()) {
         std::string dir = dir_queue.front();
-        std::cout << dir << std::endl;
         dir_queue.pop();
         processSubdir(dir);
     }
