@@ -92,7 +92,6 @@ void writeHandler(std::queue<std::string> &write_queue,std::string wfile) {
 }
 
 // Helper Function to find where a link points to
-
 std::string getLinkPath(std::string link,std::string path_range) {
   char buff[PATH_BUFF];
   ssize_t bufflen = readlink(link.c_str(),buff,sizeof(buff)-1);
@@ -105,7 +104,7 @@ std::string getLinkPath(std::string link,std::string path_range) {
   }
 
   str_sz in_range = path.find(path_range);
-  if (in_range != std::string::npos) 
+  if (in_range != std::string::npos)
     path = path.substr(in_range);
 
   return path;
