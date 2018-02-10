@@ -2,11 +2,12 @@
 #define FILEDATA_EXTRACTOR_H
 
 #include <string>
+#include <fstream>
 
 class FiledataExtractor {
     public:
         std::string getFilename();
-        std::string getFiledata();
+        std::ifstream getFiledata();
         std::string getOwnershipInfo();
         std::string getPermInfo();
 
@@ -14,12 +15,10 @@ class FiledataExtractor {
 
     private:
         bool readACInfo();
-        bool readData();
 
         std::string ownership_data;
         std::string perm_data;
         std::string path_prefix;
         std::string filename;
-        std::string filedata;
 };
 #endif

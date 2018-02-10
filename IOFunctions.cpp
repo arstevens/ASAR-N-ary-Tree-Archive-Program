@@ -36,18 +36,33 @@ void readHandler(std::queue<std::string> &file_queue,std::string wfile,std::stri
 
             // Handle file data writes
             if (ftype == FILE_END) {
-              std::string fdata = extractor.getFiledata();
+              std::ifstream fdata = extractor.getFiledata();
+              char *buff = new char[BLK_SIZE+1];
+
+              // Find length of fdata
+              fdata.seekg(0,fdata.end);
+              size_t fd_length = fdata.tellg();
+              fdata.seekg(0,fdata.beg);
 
               // Block out data into 64kb blocks
-              while (fdata.size() > BLK_SIZE) {
-                  write_entry = fdata.substr(0,BLK_SIZE);
+              while (fd_length > BLK_SIZE) {
+                  // read in data
+                  fdata.read(buff,BLK_SIZE);
+                  buff[BLK_SIZE] = '\0';
+                  write_entry += buff;
+
+                  // push data to write queue
                   write_queue.push(write_entry);
                   write_entry = "";
-                  fdata = fdata.substr(BLK_SIZE);
+
+                  fd_length = fd_length - BLK_SIZE;
               }
 
               // Write leftover data to queue
-              write_queue.push(fdata);
+              fdata.read(buff,fd_length);
+              buff[fd_length] = '\0';
+              write_entry.assign(buff,fd_length);
+              write_queue.push(write_entry);
 
             }
             else if (ftype == SYM_END) {

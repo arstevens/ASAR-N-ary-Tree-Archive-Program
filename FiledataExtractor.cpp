@@ -47,23 +47,10 @@ bool FiledataExtractor::readACInfo() {
     return true;
 }
 
-bool FiledataExtractor::readData() {
+std::ifstream FiledataExtractor::getFiledata() {
     std::ifstream reader;
     reader.open(path_prefix+PATH_SEPERATOR+filename,std::ifstream::in);
-
-    // Check if failbit is set
-    if (reader.fail())
-        return false;
-
-    // Read in data from file
-    char current_char = reader.get();
-    while (reader.good()) {
-        filedata += current_char;
-        current_char = reader.get();
-    }
-
-    reader.close();
-    return true;
+    return reader;
 }
 
 // Getter Methods
@@ -79,16 +66,10 @@ std::string FiledataExtractor::getFilename() {
     return filename;
 }
 
-std::string FiledataExtractor::getFiledata() {
-  readData();
-  return filedata;
-}
-
 // Mutator Methods
 bool FiledataExtractor::loadFile(std::string path) {
   std::string::size_type seperator = path.find_last_of('/');
     path_prefix = path.substr(0,seperator);
     filename = path.substr(seperator+1);
-    filedata = "";
     return readACInfo();
 }
