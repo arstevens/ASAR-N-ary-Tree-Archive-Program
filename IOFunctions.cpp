@@ -62,12 +62,17 @@ void readHandler(std::queue<std::string> &file_queue,std::string wfile,std::stri
               fdata.read(buff,fd_length);
               buff[fd_length] = '\0';
               write_entry.assign(buff,fd_length);
-              write_queue.push(write_entry);
+
+              fdata.close();
 
             }
-            else if (ftype == SYM_END) {
-              write_queue.push(getLinkPath(f_entry.substr(1),path_range));
-            }
+            else if (ftype == SYM_END)
+              write_entry += getLinkPath(f_entry.substr(1),path_range);
+
+
+            // Write leftover data if applicable
+            if (write_entry.size() != 0)
+              write_queue.push(write_entry);
 
             // Check if queue processing still active
             if (file_queue.front() == EOE) {
